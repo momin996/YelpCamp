@@ -7,14 +7,14 @@ import ejsMate from "ejs-mate";
 import session from "express-session";
 import flash from "connect-flash";
 import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
 import ExpressError from "./utils/ExpresError.js";
 import userRoutes from "./routes/users.js"
 import campgroundRoutes from "./routes/campgrounds.js"
 import reviewRoutes from "./routes/reviews.js"
 import User from "./models/user.js";
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-import { Strategy as LocalStrategy } from "passport-local";
+// import { createRequire } from 'module';
+// const require = createRequire(import.meta.url);
 // const LocalStrategy = require("passport-local");
 // npm run dev
 
