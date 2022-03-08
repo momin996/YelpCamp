@@ -7,12 +7,18 @@ import ejsMate from "ejs-mate";
 import session from "express-session";
 import flash from "connect-flash";
 import passport from "passport";
+import { config } from "dotenv";
 import { Strategy as LocalStrategy } from "passport-local";
 import ExpressError from "./utils/ExpresError.js";
 import userRoutes from "./routes/users.js"
 import campgroundRoutes from "./routes/campgrounds.js"
 import reviewRoutes from "./routes/reviews.js"
 import User from "./models/user.js";
+
+
+if(process.env.NODE_ENV !== "production"){
+    config();
+}
 // import { createRequire } from 'module';
 // const require = createRequire(import.meta.url);
 // const LocalStrategy = require("passport-local");

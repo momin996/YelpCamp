@@ -5,9 +5,18 @@ import Review  from "./review.js";
 
 const Schema = mongoose.Schema;
 
+const ImageSchema = new Schema({
+    url: String,
+    fileName: String
+});
+
+ImageSchema.virtual("thumbnail").get(function() {
+    return this.url.replace("/upload", "/upload/w_200");
+})
+
 const CampgroundSchema = new Schema({
     title: String,
-    image: String,
+    images: [ImageSchema],
     price: {
         type: Number,
         min: 0
