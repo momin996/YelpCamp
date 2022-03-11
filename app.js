@@ -3,6 +3,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import methodOverride from 'method-override';
 import mongoose from "mongoose";
+import ejs from "ejs"
 import ejsMate from "ejs-mate";
 import session from "express-session";
 import flash from "connect-flash";
@@ -19,6 +20,11 @@ import User from "./models/user.js";
 if(process.env.NODE_ENV !== "production"){
     config();
 }
+
+// global delimiters of ejs
+// ejsMa.delimiter = '/';
+// ejs.openDelimiter = '[';
+// ejs.closeDelimiter = ']';
 // import { createRequire } from 'module';
 // const require = createRequire(import.meta.url);
 // const LocalStrategy = require("passport-local");

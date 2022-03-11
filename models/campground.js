@@ -4,6 +4,7 @@ import Review  from "./review.js";
 
 
 const Schema = mongoose.Schema;
+const opts = { toJSON: {virtuals: true}}
 
 const ImageSchema = new Schema({
     url: String,
@@ -22,6 +23,17 @@ const CampgroundSchema = new Schema({
         min: 0
     },
     description: String,
+    geometry: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    },
     location: String,
     author: {
         type: Schema.Types.ObjectId,
@@ -31,7 +43,12 @@ const CampgroundSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Review"
     }]
-});
+}, opts);
+
+CampgroundSchema.virtual("properties.popupMarkup").get(function() {
+    return `<h4><strong><a href="/campgrounds/${this._id}">${this.title}</a></strong></h4>
+            <p>${this.location}</p>`
+})
 
 CampgroundSchema.post("findOneAndDelete", async function(doc) {
     if(doc){

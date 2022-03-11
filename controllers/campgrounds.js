@@ -1,5 +1,10 @@
 import Campground from "../models/campground.js";
 import cloudinary from "../cloudinary/index.js";
+import mbxGeocoding from "@mapbox/mapbox-sdk/services/geocoding.js";
+
+const mapBoxToken = process.env.MAPBOX_TOKEN;
+const geocoder = mbxGeocoding({accessToken: mapBoxToken});
+
 
 const index = async (req, res, next) => {
     const campgrounds = await Campground.find({});
@@ -11,11 +16,15 @@ const renderNewForm = (req, res) => {
 };
 
 const createCampground = async (req, res, next) => {
+    const geoData = await geocoder.forwardGeocode({
+        query: req.body.campground.location,
+        limit: 1
+    }).send();
     const newCampground = new Campground(req.body.campground);
+    newCampground.geoLocation = geoData.body.features[0].geometry;
     newCampground.images = req.files.map(f => ({ url: f.path, fileName: f.filename}));
     newCampground.author = req.user._id;
     await newCampground.save();
-    console.log(newCampground);
     req.flash("success", "Successully made a new campground");
     res.redirect(`/campgrounds/${newCampground._id}`);
 };
@@ -50,18 +59,21 @@ const renderEditForm = async (req, res, next) => {
 };
 
 const updateCampground = async (req, res, next) => {
+    const geoData = await geocoder.forwardGeocode({
+        query: req.body.campground.location,
+        limit: 1
+    }).send();
     const { id } = req.params;
-    
     const updatedCampground = await Campground.findByIdAndUpdate(id, { ...req.body.campground });
     const images = req.files.map(f => ({ url: f.path, fileName: f.filename}));
     updatedCampground.images.push(...images);
+    updatedCampground.geoLocation = geoData.body.features[0].geometry;
     await updatedCampground.save();
     if(req.body.deleteImages){
         console.log(req.body.deleteImages);
         for(let fileName of req.body.deleteImages){
             await cloudinary.uploader.destroy(fileName);
         }
-        
         await updatedCampground.updateOne({ $pull: { images: { fileName: {$in: req.body.deleteImages } } } });
     }
     req.flash("success", "Successully updated campground");
