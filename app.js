@@ -1,11 +1,12 @@
 import express from "express";
+import session from "express-session";
+import ExpressMongoSanitize from "express-mongo-sanitize";
+import helmet from "helmet";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import methodOverride from 'method-override';
 import mongoose from "mongoose";
-import ejs from "ejs"
 import ejsMate from "ejs-mate";
-import session from "express-session";
 import flash from "connect-flash";
 import passport from "passport";
 import { config } from "dotenv";
@@ -55,13 +56,20 @@ app.use(express.static(join(__dirname, "public")));
 app.use(express.urlencoded({extended:true}));
 // Override Form Methods
 app.use(methodOverride("_method"));
+// Helps secure your Express app by setting various HTTP headers
+// app.use(helmet({contentSecurityPolicy: false}));
+// Sanitizes Query/Body parameters
+app.use(ExpressMongoSanitize());
+
 // Configure Session
 const sessionConfig = {
+    name: "session_guid",
     secret: "thisshouldbeabettersecrect",
     resave: false,
     saveUninitialized: true,
     cookie: {
         httpOnly: true,
+        // secure: true,
         maxAge: 1000*60*60*24*7
     }
 };
@@ -107,5 +115,6 @@ app.use((err, req, res , next) => {
 
 // Starting Express Server
 app.listen(port, () =>{
+    // console.log(`Server Running on http://localhost:${port}`);
     console.log(`Listening on port ${port}`);
 });
