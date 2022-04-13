@@ -1,5 +1,6 @@
 import express from "express";
 import session from "express-session";
+import MongoStore from "connect-mongo";
 import ExpressMongoSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 import { fileURLToPath } from "url";
@@ -21,17 +22,11 @@ import User from "./models/user.js";
 if(process.env.NODE_ENV !== "production"){
     config();
 }
-
-// global delimiters of ejs
-// ejsMa.delimiter = '/';
-// ejs.openDelimiter = '[';
-// ejs.closeDelimiter = ']';
-// import { createRequire } from 'module';
-// const require = createRequire(import.meta.url);
-// const LocalStrategy = require("passport-local");
 // npm run dev
 
-mongoose.connect("mongodb://localhost:27017/yelp-camp");
+// const dbUrl = process.env.DB_URL;
+const dbUrl = "mongodb://localhost:27017/yelp-camp"
+mongoose.connect(dbUrl);
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "Connection Error"));
@@ -48,33 +43,43 @@ const __dirname = dirname(__filename);
 app.set("view engine", "ejs");
 app.set("views", join(__dirname, "/views"));
 
-app.engine("ejs", ejsMate);
-
 // Make public directory accesible directly
 app.use(express.static(join(__dirname, "public")));
 // Get form data in req object as body
 app.use(express.urlencoded({extended:true}));
 // Override Form Methods
 app.use(methodOverride("_method"));
-// Helps secure your Express app by setting various HTTP headers
-// app.use(helmet({contentSecurityPolicy: false}));
 // Sanitizes Query/Body parameters
 app.use(ExpressMongoSanitize());
 
+app.engine("ejs", ejsMate);
+
+const store = MongoStore.create({
+    mongoUrl: dbUrl,
+    secret: process.env.SESSION_SECRET,
+    touchAfter: 24 * 60 * 60        // 24 hrs  (Unit used is seconds)
+}).on("error", (e) => {
+    console.log("SESSION STORE ERROR", e);
+});
+
 // Configure Session
 const sessionConfig = {
+    store,
     name: "session_guid",
-    secret: "thisshouldbeabettersecrect",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: {
         httpOnly: true,
         // secure: true,
-        maxAge: 1000*60*60*24*7
+        maxAge: 1000*60*60*24*7     // 24 hrs  (Unit used is milliseconds)
     }
 };
 app.use(session(sessionConfig));
 app.use(flash());
+
+// Helps secure your Express app by setting various HTTP headers
+app.use(helmet({contentSecurityPolicy: false, crossOriginEmbedderPolicy: false}));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -115,6 +120,6 @@ app.use((err, req, res , next) => {
 
 // Starting Express Server
 app.listen(port, () =>{
-    // console.log(`Server Running on http://localhost:${port}`);
-    console.log(`Listening on port ${port}`);
+    console.log(`Server Running on http://localhost:${port}`);
+    // console.log(`Listening on port ${port}`);
 });
