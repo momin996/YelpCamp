@@ -25,7 +25,7 @@ if(process.env.NODE_ENV !== "production"){
 // npm run dev
 
 // const dbUrl = process.env.DB_URL;
-const dbUrl = "mongodb://localhost:27017/yelp-camp"
+const dbUrl = process.env.DB_URL || "mongodb://localhost:27017/yelp-camp"
 mongoose.connect(dbUrl);
 
 const db = mongoose.connection;
@@ -54,9 +54,11 @@ app.use(ExpressMongoSanitize());
 
 app.engine("ejs", ejsMate);
 
+const secret = process.env.SESSION_SECRET;
+
 const store = MongoStore.create({
     mongoUrl: dbUrl,
-    secret: process.env.SESSION_SECRET,
+    secret: secret,
     touchAfter: 24 * 60 * 60        // 24 hrs  (Unit used is seconds)
 }).on("error", (e) => {
     console.log("SESSION STORE ERROR", e);
@@ -66,7 +68,7 @@ const store = MongoStore.create({
 const sessionConfig = {
     store,
     name: "session_guid",
-    secret: process.env.SESSION_SECRET,
+    secret: secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
