@@ -35,7 +35,6 @@ db.once("open", () => {
 });
 
 const app = express();
-const port = 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -120,8 +119,10 @@ app.use((err, req, res , next) => {
     res.status(statusCode).render("error", {err});
 });
 
+const port = process.env.PORT || 3000;
+
 // Starting Express Server
 app.listen(port, () =>{
-    console.log(`Server Running on http://localhost:${port}`);
-    // console.log(`Listening on port ${port}`);
+    // console.log(`Server Running on http://localhost:${port}`);
+    console.log(`Listening on port ${port}`);
 });
